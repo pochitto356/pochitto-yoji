@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ぽちっと四字熟語</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --washi:#f6f1e6; --ink:#2b2622; --sub:#7a6f63; --line:#d9cfbf;
+  --shu:#2e5c8a; --shu-d:#1f4268; --moss:#4f7a4a; --gold:#c9a84c;
+  --tile:#fffaf0; --tile-b:#cbbfa9; --ok:#4f7a4a; --ng:#c8412b; --red:#c8412b;
+  --serif:"Noto Serif JP","Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho","Noto Serif CJK JP",serif;
+  --sans:"Noto Sans JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans CJK JP",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--washi);color:var(--ink);font-family:var(--sans);overscroll-behavior:none}
+body{background-image:radial-gradient(rgba(0,0,0,.025) 1px,transparent 1px);background-size:6px 6px}
+#app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+/* iPad など広い画面では全体を拡大(縦長のまま中央の1カラム) */
+@media (min-width:700px){#app{zoom:1.55}}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex}
+h1.logo{font-family:var(--serif);font-weight:700;font-size:40px;letter-spacing:.06em;margin:24px 0 4px;text-align:center}
+h1.logo .dot{color:var(--shu)}
+.tag{text-align:center;color:var(--sub);font-size:13px;margin-bottom:18px}
+.streak{display:flex;justify-content:center;gap:18px;margin:6px 0 18px}
+.streak div{text-align:center;cursor:pointer}
+.streak b{display:block;font-size:26px;font-family:var(--serif)}
+.streak span{font-size:11px;color:var(--sub)}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;font-size:17px;font-weight:700;
+  font-family:inherit;color:#fff;background:var(--shu);box-shadow:0 3px 0 var(--shu-d);cursor:pointer;margin:10px 0}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shu-d)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.ghost:active{box-shadow:inset 0 0 0 2px var(--line)}
+.btn.sm{padding:10px 14px;font-size:14px;width:auto;display:inline-block;margin:6px 4px}
+.btn:disabled{opacity:.45;box-shadow:none;transform:none}
+.row2{display:flex;gap:10px}.row2 .btn{flex:1}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:14px;color:var(--sub)}
+.top .x{font-size:22px;line-height:1;padding:4px 8px;cursor:pointer;color:var(--ink)}
+.lives{letter-spacing:2px}
+.cross{position:relative;width:min(84vw,330px);height:min(84vw,330px);margin:12px auto 6px}
+.cell{position:absolute;width:28%;height:28%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:700;font-size:clamp(28px,9vw,40px);
+  background:var(--tile);border:2px solid var(--tile-b);border-radius:12px;box-shadow:0 2px 0 var(--tile-b)}
+.cell.t{left:36%;top:0}.cell.b{left:36%;bottom:0}.cell.l{left:0;top:36%}.cell.r{right:0;top:36%}
+.cell.c{left:36%;top:36%;background:#fff;border:3px dashed var(--shu);color:var(--shu);box-shadow:none}
+.cell.c.ok{border-style:solid;border-color:var(--ok);color:var(--ok);background:#eef5ec;animation:pop .35s}
+.cell.c.ng{animation:shake .35s}
+.cell.c.rev{border-style:solid;border-color:var(--sub);color:var(--sub)}
+.cell.hl{box-shadow:0 0 0 4px rgba(46,92,138,.35),0 2px 0 var(--tile-b)}
+.arrow{position:absolute;display:flex;align-items:center;justify-content:center;
+  color:var(--shu);font-weight:700;font-size:clamp(18px,6vw,26px);line-height:1;pointer-events:none}
+.arrow.t{left:36%;width:28%;top:28%;height:8%}
+.arrow.b{left:36%;width:28%;bottom:28%;height:8%}
+.arrow.l{top:36%;height:28%;left:28%;width:8%}
+.arrow.r{top:36%;height:28%;right:28%;width:8%}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.answer{display:flex;gap:8px;margin:8px 0 4px}
+.answer input{flex:1;min-width:0;height:60px;border:2px solid var(--tile-b);border-radius:12px;background:#fff;
+  font-family:var(--serif);font-size:32px;font-weight:700;text-align:center;color:var(--ink);outline:none}
+.answer input:focus{border-color:var(--shu)}
+.answer input.hl{box-shadow:0 0 0 4px rgba(46,92,138,.35)}
+.answer input::placeholder{font-family:var(--sans);font-size:15px;font-weight:400;color:#b8a99a}
+.answer .btn.sm{margin:0;height:60px;padding:0 18px;font-size:16px}
+.tried{text-align:center;min-height:22px;font-size:14px;color:var(--sub);letter-spacing:2px}
+.tried s{color:#b8a99a;margin:0 3px;font-family:var(--serif);font-size:18px}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 6px}
+.choices[hidden]{display:none}
+.ch{border:2px solid var(--tile-b);background:var(--tile);border-radius:12px;height:60px;font-size:28px;
+  font-family:var(--serif);font-weight:700;cursor:pointer;box-shadow:0 3px 0 var(--tile-b);color:var(--ink)}
+.ch:active{transform:translateY(2px);box-shadow:0 1px 0 var(--tile-b)}
+.ch.off{opacity:.25;pointer-events:none;box-shadow:none}
+.ch.wrong{background:#eee7db;color:var(--sub);text-decoration:line-through;pointer-events:none;box-shadow:none}
+.ch.right{background:#eef5ec;border-color:var(--ok);color:var(--ok)}
+.hintrow{display:flex;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.msg{text-align:center;min-height:24px;font-size:15px;color:var(--sub);margin-top:4px}
+.msg.tut{color:var(--shu);font-weight:700}
+.reading{text-align:center;font-size:13px;color:var(--ok);min-height:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.card h3{margin:0 0 8px;font-size:15px;color:var(--sub);font-weight:400}
+.tiles{font-size:32px;letter-spacing:4px;text-align:center;margin:6px 0}
+.res{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed var(--line);font-size:14px;gap:8px}
+.res .k{font-family:var(--serif);font-size:24px;color:var(--shu);flex:none}
+.res .w{color:var(--sub);font-size:12px;text-align:right;line-height:1.5}
+.res .w ruby{font-size:13px;color:var(--ink)}
+.res .w rt{font-size:9px;color:var(--sub)}
+.big{font-size:44px;font-family:var(--serif);text-align:center;margin:12px 0 4px;position:relative}
+.stamp{position:absolute;left:calc(50% + 78px);top:50%;width:88px;height:88px;margin:-44px 0 0 0;border:4px solid var(--shu);border-radius:50%;
+  color:var(--shu);font-family:var(--serif);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transform:rotate(-14deg) scale(3);opacity:0;pointer-events:none;mix-blend-mode:multiply}
+.stamp.on{animation:stamp .5s cubic-bezier(.2,.9,.3,1.2) forwards}
+@keyframes stamp{0%{transform:rotate(-14deg) scale(3);opacity:0}60%{opacity:.85}100%{transform:rotate(-14deg) scale(1);opacity:.85}}
+.foot{margin-top:auto;text-align:center;color:var(--sub);font-size:11px;padding-top:12px}
+.bannerpad{height:0}
+body.has-banner .bannerpad{height:60px}
+.overlay{position:fixed;inset:0;background:rgba(43,38,34,.55);display:none;align-items:center;justify-content:center;padding:24px;z-index:9}
+.overlay.on{display:flex}
+.modal{background:var(--washi);border-radius:16px;padding:20px;max-width:340px;width:100%;text-align:center}
+.modal h2{margin:0 0 8px;font-size:18px}
+.modal p{color:var(--sub);font-size:14px;margin:0 0 14px;white-space:pre-line}
+.toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:10;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.set{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;gap:10px}
+.set small{display:block;color:var(--sub);font-size:12px}
+.sw{width:46px;height:26px;border-radius:13px;background:var(--line);position:relative;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--moss)}.sw.on::after{left:23px}
+/* カレンダー */
+.calnav{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px;font-family:var(--serif);font-size:18px}
+.calnav button{border:0;background:transparent;font-size:22px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.calnav button:disabled{opacity:.25}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{text-align:center;font-size:11px;color:var(--sub)}
+.day{aspect-ratio:1;border-radius:10px;background:#fff;border:1px solid var(--line);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:13px;cursor:pointer;position:relative}
+.day.off{visibility:hidden}
+.day.na{background:transparent;border-style:dashed;color:#c9bfae;cursor:default}
+.day.today{border:2px solid var(--shu);font-weight:700}
+.day.done{background:#eef5ec;border-color:#bcd3b8}
+.day .m{display:flex;gap:2px;margin-top:2px}
+.day .m i{width:6px;height:6px;border-radius:2px;display:block}
+.m .g{background:#5aa64e}.m .y{background:#e6b422}.m .r{background:#d9432f}
+.legend{font-size:12px;color:var(--sub);text-align:center;margin-top:10px}
+/* バッジ */
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.badge{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center}
+.badge .ic{font-size:26px;flex:none;width:36px;text-align:center}
+.badge b{display:block;font-size:14px}.badge small{color:var(--sub);font-size:11px}
+.badge.lock{opacity:.45;filter:grayscale(1)}
+
+/* 四字熟語の盤面 */
+.yoji{display:flex;justify-content:center;gap:8px;margin:26px auto 10px}
+.yt{width:min(20vw,78px);height:min(20vw,78px);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;
+  font-size:clamp(32px,10vw,46px);background:var(--tile);border:2px solid var(--tile-b);border-radius:12px;box-shadow:0 3px 0 var(--tile-b)}
+.yt.blank{background:#fff;border:3px dashed var(--shu);color:var(--shu);box-shadow:none}
+.yt.ok{border:3px solid var(--ok);color:var(--ok);background:#eef5ec;animation:pop .35s}
+.yt.rev{border:3px solid var(--sub);color:var(--sub);background:#fff}
+.yt.ng{animation:shake .35s}
+.yread{text-align:center;font-size:15px;color:var(--sub);min-height:22px;letter-spacing:.1em}
+.ymean{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;font-size:14px;line-height:1.6;display:none}
+.ymean.on{display:block}
+.ymean b{color:var(--shu)}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 6px}
+.choices.c4{grid-template-columns:repeat(2,1fr)}
+.lvtag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;margin-left:6px;color:var(--sub)}
+.zk{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.zi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer}
+.zi b{font-family:var(--serif);font-size:20px;display:block;letter-spacing:.08em}
+.zi small{color:var(--sub);font-size:11px}
+.zi.lock{background:transparent;border-style:dashed;color:#c9bfae;cursor:default}
+.zi.lock b{color:#c9bfae}
+.ztabs{display:flex;gap:6px;margin:4px 0 10px}
+.ztabs button{flex:1;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px;font-family:inherit;font-size:13px;color:var(--sub)}
+.ztabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:4px 0 12px}
+.prog i{display:block;height:100%;background:var(--shu)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ホーム -->
+<section id="home" class="screen">
+  <h1 class="logo">ぽちっと<span class="dot">四字熟語</span></h1>
+  <div class="tag">□に入る漢字は？  毎日5問・2分</div>
+  <div class="streak">
+    <div><b id="hStreak">0</b><span>🔥 連続日数</span></div>
+    <div id="hZukanBox"><b id="hZukan">0</b><span>📖 図鑑</span></div>
+    <div id="hBadgeBox"><b id="hBadges">0</b><span>🏅 バッジ</span></div>
+  </div>
+  <button class="btn" id="bDaily">今日の5問</button>
+  <div class="row2">
+    <button class="btn ghost" id="bArchive">📅 過去問</button>
+    <button class="btn ghost" id="bPractice">✏️ 練習</button>
+  </div>
+  <div class="row2">
+    <button class="btn ghost" id="bZukan">📖 図鑑</button>
+    <button class="btn ghost" id="bBadges">🏅 バッジ</button>
+  </div>
+  <div class="row2">
+    <button class="btn ghost" id="bSettings">⚙ 設定</button>
+    <button class="btn ghost" id="bHow">遊び方</button>
+  </div>
+  <div id="bannerPad" class="bannerpad"></div>
+  <div class="foot">pochitto games · v1.0 · 収録 <span id="hCount">0</span> 語</div>
+</section>
+
+<!-- 問題 -->
+<section id="play" class="screen">
+  <div class="top">
+    <span class="x" id="bQuit">✕</span>
+    <span id="pProg"></span>
+    <span id="pLives" class="lives"></span>
+  </div>
+  <div class="yoji" id="yoji"></div>
+  <div class="yread" id="yread"></div>
+  <div class="msg" id="pMsg"></div>
+  <div class="ymean" id="ymean"></div>
+  <div class="choices" id="choices"></div>
+  <div class="tried" id="tried"></div>
+  <div class="hintrow" id="hintRow">
+    <button class="btn ghost sm" id="bMean">📖 意味を見る</button>
+    <button class="btn ghost sm" id="bHint">💡 2つ消す</button>
+  </div>
+  <div style="text-align:center;margin-top:8px"><button class="btn sm" id="bNext" style="display:none">次へ ▶</button></div>
+</section>
+
+<!-- 結果 -->
+<section id="result" class="screen">
+  <div class="top"><span class="x" id="bResHome">✕</span><span id="rTitle"></span><span></span></div>
+  <div class="big"><span id="rBig"></span><div class="stamp" id="stamp">満点</div></div>
+  <div class="tiles" id="rTiles"></div>
+  <div class="card" id="rStreakCard"><h3>連続記録</h3><div style="font-size:22px;text-align:center">🔥 <b id="rStreak">0</b> 日目</div></div>
+  <div class="card"><h3>今日の四字熟語</h3><div id="rList"></div></div>
+  <button class="btn" id="bShare">結果をシェア</button>
+  <div class="row2"><button class="btn ghost" id="bResArchive">📅 過去問</button><button class="btn ghost" id="bResPractice">✏️ 練習</button></div>
+</section>
+
+<!-- 練習結果 -->
+<section id="presult" class="screen">
+  <div class="top"><span class="x" id="bPResHome">✕</span><span>練習おわり</span><span></span></div>
+  <div class="big"><span id="prScore">0</span> 問連続正解</div>
+  <div class="tag">ベスト <span id="prBest">0</span></div>
+  <div class="card"><h3>間違えた四字熟語</h3><div id="prList"></div></div>
+  <button class="btn" id="bPAgain">もう一回</button>
+  <button class="btn ghost" id="bPHome">ホームへ</button>
+</section>
+
+<!-- 過去問カレンダー -->
+<section id="archive" class="screen">
+  <div class="top"><span class="x" id="bArcHome">✕</span><span>過去問</span><span></span></div>
+  <div class="calnav"><button id="calPrev">‹</button><span id="calTitle"></span><button id="calNext">›</button></div>
+  <div class="cal" id="cal"></div>
+  <div class="legend">解いた日は色付き。未挑戦の日をタップすると、その日の5問に挑戦できます</div>
+</section>
+
+<!-- 図鑑 -->
+<section id="zukan" class="screen">
+  <div class="top"><span class="x" id="bZukHome">✕</span><span>四字熟語図鑑</span><span id="zCount"></span></div>
+  <div class="prog"><i id="zBar"></i></div>
+  <div class="ztabs" id="zTabs"></div>
+  <div class="zk" id="zList"></div>
+</section>
+
+<!-- バッジ -->
+<section id="badges" class="screen">
+  <div class="top"><span class="x" id="bBadHome">✕</span><span>バッジ</span><span id="badCount"></span></div>
+  <div class="badges" id="badgeList"></div>
+</section>
+
+<!-- 設定 -->
+<section id="settings" class="screen">
+  <div class="top"><span class="x" id="bSetHome">✕</span><span>設定</span><span></span></div>
+  <div class="set"><div>効果音</div><div class="sw on" id="swSound"></div></div>
+  <div class="set"><div>毎朝の通知<small>「今日の5問が届きました」</small></div><div class="sw on" id="swNotif"></div></div>
+  <div class="set"><div>通知時刻</div><input type="time" id="notifTime" value="08:00" style="font-size:16px;font-family:inherit;border:1px solid var(--line);border-radius:8px;padding:6px;background:#fff"></div>
+  <div class="set" id="setBuy"><div>広告なし+ヒント無制限<small id="buyNote">¥300 買い切り</small></div><button class="btn sm ghost" id="bBuy">購入</button></div>
+  <div class="set"><div>購入を復元</div><button class="btn sm ghost" id="bRestore">復元</button></div>
+  <div class="set"><div>チュートリアルをもう一度</div><button class="btn sm ghost" id="bTutAgain">見る</button></div>
+  <div class="set"><div>記録をリセット<small>ストリーク・図鑑・バッジ・履歴を消す</small></div><button class="btn sm ghost" id="bReset">リセット</button></div>
+  <div class="card" style="margin-top:14px"><h3>pochitto games の他のアプリ</h3><div id="otherApps"></div></div>
+  <div class="foot"><a href="https://pochitto356.github.io/pochittoyoji-privacy.html" target="_blank" rel="noopener" style="color:var(--sub)">プライバシーポリシー</a> · pochitto games</div>
+</section>
+
+</div>
+
+<div class="overlay" id="ov"><div class="modal">
+  <h2 id="ovTitle"></h2><p id="ovBody"></p>
+  <button class="btn" id="ovOk">OK</button>
+  <button class="btn ghost" id="ovCancel" style="display:none">やめる</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script src="yoji.js"></script>
+<script src="native.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
