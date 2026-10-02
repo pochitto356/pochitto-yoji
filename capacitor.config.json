@@ -1,0 +1,16 @@
+{
+  "appId": "com.konishi.pochittoyoji",
+  "appName": "ぽちっと四字熟語",
+  "webDir": "www",
+  "backgroundColor": "#f6f1e6",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#f6f1e6"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#2e5c8a"
+    }
+  }
+}
