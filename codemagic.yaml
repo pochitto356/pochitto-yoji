@@ -21,8 +21,8 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.konishi.pochittoyoji
       vars:
-        APP_APPLE_ID: "0000000000"  # ★ASCでアプリ作成後に差し替え
-        ADMOB_APP_ID: "ca-app-pub-3940256099942544~1458002511"  # ★Googleのテスト用。AdMob登録後に差し替え
+        APP_APPLE_ID: "6818395412"
+        ADMOB_APP_ID: "ca-app-pub-7792368657314009~7863684668"
         MARKETING_VERSION: "1.0"
     scripts:
       - name: npmパッケージ取得
