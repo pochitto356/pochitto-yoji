@@ -12,11 +12,11 @@
   // ---- 広告ユニットID -------------------------------------------------
   // ★AdMobで発行したら本番IDに差し替えて IS_TESTING を false にする。
   //   今はGoogle公式のテスト広告ID(収益ゼロ)。この状態で審査に出さないこと。
-  var IS_TESTING = true;
+  var IS_TESTING = false;
   var AD_IDS = {
-    banner: 'ca-app-pub-3940256099942544/2934735716',        // ← PY_banner
-    interstitial: 'ca-app-pub-3940256099942544/4411468910',  // ← PY_interstitial
-    rewarded: 'ca-app-pub-3940256099942544/1712485313'       // ← PY_rewarded
+    banner: 'ca-app-pub-7792368657314009/8178455995',        // PY_banner_home
+    interstitial: 'ca-app-pub-7792368657314009/9455792925',  // PY_interstitial_practice
+    rewarded: 'ca-app-pub-7792368657314009/6446486209'       // PY_rewarded
   };
   var PRODUCT_ID = 'pochittoyoji_premium'; // 非消耗型 ¥300 広告なし+ヒント無制限
 
@@ -267,7 +267,7 @@
 
   // ---- シェア ---------------------------------------------------------
   // ★App Storeで公開されたら APP_STORE_ID を入れると、シェア文にダウンロードURLが付く
-  var APP_STORE_ID = '';
+  var APP_STORE_ID = '6818395412';
   function share(text) {
     var url = APP_STORE_ID ? 'https://apps.apple.com/jp/app/id' + APP_STORE_ID : '';
     var full = url ? text + '\n' + url : text;
