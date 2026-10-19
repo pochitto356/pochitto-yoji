@@ -22,7 +22,7 @@
 
   var C = window.Capacitor;
   var isApp = !!(C && C.isNativePlatform && C.isNativePlatform());
-  var AdMob = null, LocalNotifications = null, Share = null;
+  var AdMob = null, LocalNotifications = null, Share = null, FA = null;
   var premium = false;
   var bannerShown = false;
   var interstitialReady = false;
@@ -43,6 +43,7 @@
     AdMob = C.Plugins.AdMob;
     LocalNotifications = C.Plugins.LocalNotifications;
     Share = C.Plugins.Share || null;
+    FA = C.Plugins.FirebaseAnalytics || null; // 継続率(D1/D7)の計測。2026-10-19 追加
     // 順番が重要: ATTの許可ダイアログ → AdMob初期化 → 課金初期化
     return requestATT().then(initAds).then(initIAP).catch(function (e) { log('init error', e); });
   }
@@ -242,7 +243,7 @@
     pseudo(title, body, function () {
       AdMob.prepareRewardVideoAd({ adId: AD_IDS.rewarded, isTesting: IS_TESTING })
         .then(function () { return AdMob.showRewardVideoAd(); })
-        .then(function (reward) { if (reward) onReward(); else onCancel(); })
+        .then(function (reward) { if (reward) { track('reward_watched', { place: String(title).slice(0, 40) }); onReward(); } else onCancel(); })
         .catch(function (e) {
           log('rewarded failed', e);
           pseudo('広告を読み込めませんでした', '通信環境をご確認ください。', onCancel, null);
@@ -286,6 +287,14 @@
     } catch (e) { pseudo('シェア', full); }
   }
 
+  // ---- 計測 (Firebase Analytics) ---------------------------------------
+  // 起動・継続率(first_open / session_start)はFirebaseが自動で記録する。
+  // ここではゲーム内の行動だけ送る。ブラウザでは何もしない。失敗しても遊びに影響させない。
+  function track(name, params) {
+    if (!FA) return;
+    try { FA.logEvent({ name: name, params: params || {} }).catch(function () {}); } catch (e) {}
+  }
+
   window.Native = {
     isApp: isApp,
     init: init,
@@ -296,6 +305,7 @@
     restore: restore,
     scheduleDaily: scheduleDaily,
     share: share,
+    track: track,
     isPremium: function () { return premium; }
   };
 })();

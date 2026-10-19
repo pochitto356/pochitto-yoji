@@ -23,7 +23,7 @@ workflows:
       vars:
         APP_APPLE_ID: "6818395412"
         ADMOB_APP_ID: "ca-app-pub-7792368657314009~7863684668"
-        MARKETING_VERSION: "1.0.1"
+        MARKETING_VERSION: "1.0.2"
     scripts:
       - name: npmパッケージ取得
         script: npm install
@@ -33,6 +33,34 @@ workflows:
         script: npx @capacitor/assets generate --ios --iconBackgroundColor '#f6f1e6' --splashBackgroundColor '#f6f1e6'
       - name: Capacitor同期
         script: npx cap sync ios
+      - name: Firebase Analytics の設定(継続率D1/D7の計測。2026-10-19 追加)
+        script: |
+          # 1) Firebaseの設定ファイルをアプリに入れる(リポジトリの firebase/ に置いたもの)
+          if [ ! -f firebase/GoogleService-Info.plist ]; then
+            echo "firebase/GoogleService-Info.plist がありません。Firebaseコンソールからダウンロードして置いてください"; exit 1
+          fi
+          cp firebase/GoogleService-Info.plist ios/App/App/GoogleService-Info.plist
+          ruby -e '
+            require "xcodeproj"
+            p = Xcodeproj::Project.open("ios/App/App.xcodeproj")
+            t = p.targets.find { |x| x.name == "App" }
+            g = p.main_group["App"]
+            f = g.files.find { |x| x.path == "GoogleService-Info.plist" } || g.new_reference("GoogleService-Info.plist")
+            t.add_resources([f]) unless t.resources_build_phase.files_references.include?(f)
+            p.save
+          '
+          # 2) Firebase本体を入れる。プラグインの既定(Lite)はSDKが入らないので、IDFAなし版のサブスペックを追加
+          #    IDFAはAdMobがATTで扱うので、Firebase側では使わない
+          python3 - <<'PY'
+          p = 'ios/App/Podfile'
+          s = open(p).read()
+          line = "  pod 'CapacitorFirebaseAnalytics/AnalyticsWithoutAdIdSupport', :path => '../../node_modules/@capacitor-firebase/analytics'"
+          assert '# Add your Pods here' in s, 'Podfile に目印がありません'
+          if line not in s:
+              s = s.replace('# Add your Pods here', '# Add your Pods here\n' + line, 1)
+          open(p, 'w').write(s)
+          PY
+          grep -n "CapacitorFirebaseAnalytics" ios/App/Podfile
       - name: 最低対応OSを iOS 15 に(2027年春からAppleが15.0以上を必須化)
         script: |
           cd ios/App

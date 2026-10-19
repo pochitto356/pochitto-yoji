@@ -155,7 +155,7 @@ function startDaily(){
   const today=dayKey();
   if(S.daily[today]){showDailyResult(S.daily[today]);return;}
   if(!S.tut){startTutorial();return;}
-  G={mode:'daily',n:todayN(),list:dailySet(todayN()),i:0,marks:[]};loadQ();
+  G={mode:'daily',n:todayN(),list:dailySet(todayN()),i:0,marks:[]};Native.track('daily_start',{n:G.n});loadQ();
 }
 function startArchive(n){
   const k=keyFromN(n);
@@ -164,11 +164,11 @@ function startArchive(n){
 }
 function practiceList(){return shuffle(YOJI).map(y=>makeQ(y,Math.random));}
 function startPractice(){
-  G={mode:'practice',list:practiceList(),i:0,marks:[],lives:3,score:0,wrongs:[],continued:false};loadQ();
+  G={mode:'practice',list:practiceList(),i:0,marks:[],lives:3,score:0,wrongs:[],continued:false};Native.track('practice_start');loadQ();
 }
 function startTutorial(){
   modal('はじめまして!','四字熟語の □ に入る漢字を、下の候補から選ぶゲームです。\nまず1問、いっしょにやってみましょう。',
-    ()=>{const y=YOJI.find(x=>x.w==='一石二鳥');G={mode:'tut',list:[{id:y.id,pos:3,ans:'鳥',choices:['馬','鳥','魚','虫']}],i:0,marks:[]};loadQ();},null,'やってみる');
+    ()=>{Native.track('tutorial_begin');const y=YOJI.find(x=>x.w==='一石二鳥');G={mode:'tut',list:[{id:y.id,pos:3,ans:'鳥',choices:['馬','鳥','魚','虫']}],i:0,marks:[]};loadQ();},null,'やってみる');
 }
 function tiles(q,state){
   const y=Y(q.id);
@@ -237,7 +237,7 @@ function finishQ(mark,ok){
 }
 function next(){
   sfx.tap();
-  if(G.mode==='tut'){S.tut=true;save();toast('準備OK! 今日の5問へ');startDaily();return;}
+  if(G.mode==='tut'){S.tut=true;save();Native.track('tutorial_complete');toast('準備OK! 今日の5問へ');startDaily();return;}
   if(G.mode==='practice'){
     G.i++;if(G.i>=G.list.length){G.list=practiceList();G.i=0;}
     if(G.score>0&&G.score%8===0&&adsUnlocked())Native.interstitial(()=>loadQ());else loadQ();
@@ -267,7 +267,7 @@ function dailyDone(){
   else S.stats.archive++;
   const perfect=G.marks.every(m=>m==='🟩');if(perfect)S.stats.perfect++;
   const rec={n:G.n,marks:G.marks,ids:G.list.map(q=>q.id),streak:S.streak,mode:G.mode};
-  S.daily[k]=rec;save();showDailyResult(rec,true);checkBadges();
+  S.daily[k]=rec;save();Native.track(G.mode==='daily'?'daily_complete':'archive_complete',{n:G.n,correct:G.marks.filter(m=>m!=='🟥').length,streak:S.streak});showDailyResult(rec,true);checkBadges();
 }
 function showDailyResult(rec,fresh=false){
   const isToday=rec.n===todayN();
@@ -290,7 +290,7 @@ function practiceOver(){
 function practiceEnd(){
   if(G.score>S.best)S.best=G.score;
   if(G.score>S.stats.practiceBest)S.stats.practiceBest=G.score;save();
-  $('prScore').textContent=G.score;$('prBest').textContent=S.best;
+  Native.track('practice_end',{score:G.score,continued:G.continued?1:0});$('prScore').textContent=G.score;$('prBest').textContent=S.best;
   const ids=[...new Set(G.wrongs)];
   $('prList').innerHTML=ids.map(id=>resHTML(Y(id))).join('')||'<div style="color:var(--sub);font-size:13px">なし</div>';
   show('presult');checkBadges();
@@ -298,7 +298,7 @@ function practiceEnd(){
 function share(){
   const rec=G&&G.rec;if(!rec)return;
   const text=`ぽちっと四字熟語 #${rec.n} ${rec.marks.join('')}${rec.mode==='daily'?` 🔥${rec.streak}日目`:''}\n□に入る漢字、わかる？`;
-  Native.share(text);
+  Native.track('share',{method:'result',content_type:rec.mode});Native.share(text);
 }
 
 // ================= 過去問カレンダー =================

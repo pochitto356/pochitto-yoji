@@ -1,6 +1,6 @@
 {
   "name": "pochitto-yoji",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "ぽちっと四字熟語 - 空いたマスに入る漢字を選ぶ毎日5問の四字熟語クイズ",
   "private": true,
   "scripts": {
@@ -15,7 +15,8 @@
     "@capacitor-community/admob": "^7.0.0",
     "@capacitor/local-notifications": "^7.0.0",
     "cordova-plugin-purchase": "^13.12.0",
-    "@capacitor/share": "^7.0.0"
+    "@capacitor/share": "^7.0.0",
+    "@capacitor-firebase/analytics": "^7.5.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.0",
